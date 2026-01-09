@@ -5,7 +5,7 @@ const chatbotToggler = document.querySelector('#chatbot-toggler');
 const closeChatbot = document.querySelector('#close-chatbot');
 
 // API setup
-const API_URL = 'https://quickchat-f5jc.onrender.com';
+const API_URL = 'https://quickchat-f5jc.onrender.com/chat';
 
 const userData = {
   message: null
