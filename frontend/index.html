@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot UI</title>
+    <link rel="stylesheet" href="/frontend/styles.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.0.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <button id="chatbot-toggler">
+      <span class="ri-chat-4-line"></span>
+      <span class="ri-close-line"></span>
+    </button>
+
+    <div class="chatbot-popup">
+      <div class="chatbot">
+        <!-- Header -->
+        <div class="chatbot-header">
+          <div class="header-content">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png"
+              alt="Robot Logo"
+              class="robot-icon"
+            />
+            <span class="chatbot-name">QuickChat</span>
+          </div>
+          <button class="dropdown-button" id="close-chatbot">&#9662;</button>
+        </div>
+
+        <!-- Chat Body -->
+        <div class="chatbot-body">
+          <div class="message bot-message">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png"
+              alt="Bot Icon"
+              class="chat-icon"
+            />
+            <div class="text-box">
+              <p>
+                Hey there 👋 <br />
+                How can I help you today?
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="chatbot-footer">
+          <input
+            type="text"
+            placeholder="Message..."
+            class="message-input"
+            required
+          />
+          <div class="footer-icons">
+            <button type="button" class="emoji-button" id="emoji-picker">
+              😊
+            </button>
+            <button type="submit" class="send-button" id="send-message">
+              &#8593;
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Linking Emoji Mart Script for emoji picker -->
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js"></script>
+
+    <script src="/frontend/script.js"></script>
+  </body>
+</html>
