@@ -25,50 +25,45 @@ const createMessageElement = (content, ...classes) => {
 const generateBotResponse = async (incomingMessageDiv) => {
   const messageElement = incomingMessageDiv.querySelector('.text-box');
 
-  // Add user message to chat history
   chatHistory.push({
     role: 'user',
     parts: [{ text: userData.message }]
   });
 
-  // API request options
-  const requestOptions = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: chatHistory
-    })
-  };
-
   try {
-    //Fetch bot response from API
-    const response = await fetch(API_URL, requestOptions);
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: chatHistory })
+    });
+
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error.message);
     console.log('API RESPONSE:', data);
 
-    // Extract and display bot's response text
-    const candidate = data?.candidates?.[0];
-    const parts = candidate?.content?.parts;
-
-    if (!parts || parts.length === 0) {
-      throw new Error('No response from bot');
+    // 🚫 HANDLE API ERRORS FIRST
+    if (!response.ok) {
+      if (response.status === 429) {
+        throw new Error('⚠️ Bot quota exceeded. Try again later.');
+      }
+      throw new Error(data?.error?.message || 'Something went wrong');
     }
 
-    const apiResponseText = parts[0].text
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .trim();
+    // ✅ SAFE EXTRACTION
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    messageElement.innerText = apiResponseText;
+    if (!text) {
+      throw new Error("⚠️ Bot didn't return any message");
+    }
 
-    // Add bot response to chat history
+    const cleanText = text.replace(/\*\*(.*?)\*\*/g, '$1').trim();
+    messageElement.innerText = cleanText;
+
     chatHistory.push({
       role: 'model',
-      parts: [{ text: apiResponseText }]
+      parts: [{ text: cleanText }]
     });
   } catch (error) {
-    // Handle error in API response
-    console.log(error);
+    console.error(error);
     messageElement.innerText = error.message;
     messageElement.style.color = '#ff0000';
   } finally {
