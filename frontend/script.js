@@ -45,11 +45,20 @@ const generateBotResponse = async (incomingMessageDiv) => {
     const response = await fetch(API_URL, requestOptions);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error.message);
+    console.log('API RESPONSE:', data);
 
     // Extract and display bot's response text
-    const apiResponseText = data.candidates[0].content.parts[0].text
+    const candidate = data?.candidates?.[0];
+    const parts = candidate?.content?.parts;
+
+    if (!parts || parts.length === 0) {
+      throw new Error('No response from bot');
+    }
+
+    const apiResponseText = parts[0].text
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .trim();
+
     messageElement.innerText = apiResponseText;
 
     // Add bot response to chat history
@@ -71,7 +80,11 @@ const generateBotResponse = async (incomingMessageDiv) => {
 // Handle Outgoing user messages
 const handleOutgoingMessage = (e) => {
   e.preventDefault();
-  userData.message = messageInput.value.trim();
+
+  const text = messageInput.value.trim();
+  if (!text) return;
+
+  userData.message = text;
   messageInput.value = '';
 
   // Create and display user message
