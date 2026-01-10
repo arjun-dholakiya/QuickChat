@@ -48,6 +48,10 @@ app.post('/chat', async (req, res) => {
   }
 });
 
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 app.listen(3000, () => {
   console.log('Backend running on http://localhost:3000');
 });

@@ -30,40 +30,45 @@ const generateBotResponse = async (incomingMessageDiv) => {
     parts: [{ text: userData.message }]
   });
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
+
   try {
+    messageElement.innerText = '⏳ Waking up server...';
+
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: chatHistory })
+      body: JSON.stringify({ contents: chatHistory }),
+      signal: controller.signal
     });
 
-    const data = await response.json();
-    console.log('API RESPONSE:', data);
+    clearTimeout(timeoutId);
 
-    // HANDLE API ERRORS FIRST
+    const data = await response.json();
+
     if (!response.ok) {
       if (response.status === 429) {
-        throw new Error('Bot quota exceeded. Try again later.');
+        throw new Error('⚠️ Quota exceeded. Try later.');
       }
-      throw new Error(data?.error?.message || 'Something went wrong');
+      throw new Error(data?.error?.message || 'Server error');
     }
 
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('⚠️ No response from AI');
 
-    if (!text) {
-      throw new Error("Bot didn't return any message");
-    }
-
-    const cleanText = text.replace(/\*\*(.*?)\*\*/g, '$1').trim();
-    messageElement.innerText = cleanText;
+    messageElement.innerText = text.trim();
 
     chatHistory.push({
       role: 'model',
-      parts: [{ text: cleanText }]
+      parts: [{ text }]
     });
-  } catch (error) {
-    console.error(error);
-    messageElement.innerText = error.message;
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      messageElement.innerText = '⏳ Server is waking up. Please send again.';
+    } else {
+      messageElement.innerText = err.message;
+    }
     messageElement.style.color = '#ff0000';
   } finally {
     incomingMessageDiv.classList.remove('thinking');
