@@ -40,19 +40,19 @@ const generateBotResponse = async (incomingMessageDiv) => {
     const data = await response.json();
     console.log('API RESPONSE:', data);
 
-    // 🚫 HANDLE API ERRORS FIRST
+  // HANDLE API ERRORS FIRST
     if (!response.ok) {
       if (response.status === 429) {
-        throw new Error('⚠️ Bot quota exceeded. Try again later.');
+        throw new Error('Bot quota exceeded. Try again later.');
       }
       throw new Error(data?.error?.message || 'Something went wrong');
     }
 
-    // ✅ SAFE EXTRACTION
+   
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!text) {
-      throw new Error("⚠️ Bot didn't return any message");
+      throw new Error("Bot didn't return any message");
     }
 
     const cleanText = text.replace(/\*\*(.*?)\*\*/g, '$1').trim();
