@@ -13,7 +13,7 @@ const userData = {
 
 const chatHistory = [];
 
-// Create message element with dynamic classes & return it
+// Createe message element with dynamic classes & return it
 const createMessageElement = (content, ...classes) => {
   const div = document.createElement('div');
   div.classList.add('message', ...classes);
@@ -40,7 +40,7 @@ const generateBotResponse = async (incomingMessageDiv) => {
     const data = await response.json();
     console.log('API RESPONSE:', data);
 
-  // HANDLE API ERRORS FIRST
+    // HANDLE API ERRORS FIRST
     if (!response.ok) {
       if (response.status === 429) {
         throw new Error('Bot quota exceeded. Try again later.');
@@ -48,7 +48,6 @@ const generateBotResponse = async (incomingMessageDiv) => {
       throw new Error(data?.error?.message || 'Something went wrong');
     }
 
-   
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!text) {
