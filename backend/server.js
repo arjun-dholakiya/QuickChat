@@ -28,9 +28,23 @@ app.post('/chat', async (req, res) => {
     );
 
     const data = await response.json();
-    res.json(data);
+
+    // Forward Gemini errors properly
+    if (!response.ok || data.error) {
+      return res.status(data?.error?.code || response.status || 500).json({
+        error: {
+          message: data?.error?.message || 'AI service failed'
+        }
+      });
+    }
+
+    // Success
+    res.status(200).json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({
+      error: { message: 'Server error. Please try again later.' }
+    });
   }
 });
 
