@@ -13,7 +13,7 @@ const userData = {
 
 const chatHistory = [];
 
-// Createe message element with dynamic classes & return it
+// Create message element
 const createMessageElement = (content, ...classes) => {
   const div = document.createElement('div');
   div.classList.add('message', ...classes);
@@ -21,7 +21,7 @@ const createMessageElement = (content, ...classes) => {
   return div;
 };
 
-// Generate Response using bot API
+// Generate bot response
 const generateBotResponse = async (incomingMessageDiv) => {
   const messageElement = incomingMessageDiv.querySelector('.text-box');
 
@@ -34,12 +34,14 @@ const generateBotResponse = async (incomingMessageDiv) => {
   const timeoutId = setTimeout(() => controller.abort(), 60000);
 
   try {
-    messageElement.innerText = '⏳ Waking up server...';
+    messageElement.innerText = 'Server is starting, please wait...';
+
+    const limitedHistory = chatHistory.slice(-5);
 
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: chatHistory }),
+      body: JSON.stringify({ contents: limitedHistory }),
       signal: controller.signal
     });
 
@@ -49,13 +51,16 @@ const generateBotResponse = async (incomingMessageDiv) => {
 
     if (!response.ok) {
       if (response.status === 429) {
-        throw new Error('⚠️ Quota exceeded. Try later.');
+        throw new Error('Quota exceeded. Please try again later.');
       }
       throw new Error(data?.error?.message || 'Server error');
     }
 
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('⚠️ No response from AI');
+
+    if (!text) {
+      throw new Error('No response from AI service.');
+    }
 
     messageElement.innerText = text.trim();
 
@@ -65,7 +70,8 @@ const generateBotResponse = async (incomingMessageDiv) => {
     });
   } catch (err) {
     if (err.name === 'AbortError') {
-      messageElement.innerText = '⏳ Server is waking up. Please send again.';
+      messageElement.innerText =
+        'Server is waking up. Please send your message again.';
     } else {
       messageElement.innerText = err.message;
     }
@@ -76,7 +82,7 @@ const generateBotResponse = async (incomingMessageDiv) => {
   }
 };
 
-// Handle Outgoing user messages
+// Handle outgoing messages
 const handleOutgoingMessage = (e) => {
   e.preventDefault();
 
@@ -86,55 +92,61 @@ const handleOutgoingMessage = (e) => {
   userData.message = text;
   messageInput.value = '';
 
-  // Create and display user message
-  const messageContent = `<div class="text-box"><p></p></div>`;
+  const messageContent = `<div class="text-box"></div>`;
 
   const outgoingMessageDiv = createMessageElement(
     messageContent,
     'user-message'
   );
-  outgoingMessageDiv.querySelector('.text-box').textContent = userData.message;
+
+  outgoingMessageDiv.querySelector('.text-box').textContent = text;
   chatBody.appendChild(outgoingMessageDiv);
   chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: 'smooth' });
 
-  // Simulate bot response with thinking indicator after a delay
   setTimeout(() => {
-    const messageContent = `<img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="Bot Icon" class="chat-icon">
-        <div class="text-box">
-          <div class="thinking-indicator">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-          </div>
-        </div>`;
+    const botMessageContent = `
+      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="chat-icon">
+      <div class="text-box">
+        <div class="thinking-indicator">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+    `;
 
     const incomingMessageDiv = createMessageElement(
-      messageContent,
+      botMessageContent,
       'bot-message',
       'thinking'
     );
+
     chatBody.appendChild(incomingMessageDiv);
     chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: 'smooth' });
     generateBotResponse(incomingMessageDiv);
   }, 600);
 };
 
-// Handle Enter key press for sending messages
+// Send on Enter key
 messageInput.addEventListener('keydown', (e) => {
-  const userMessage = e.target.value.trim();
-  if (e.key === 'Enter' && userMessage) {
+  if (e.key === 'Enter' && messageInput.value.trim()) {
     handleOutgoingMessage(e);
   }
 });
 
-// Initialize emoji Picker & handle emoji selection
+// Emoji picker (no emoji comments)
 const picker = new EmojiMart.Picker({
   theme: 'light',
   skinTonePosition: 'none',
   previewPosition: 'none',
   onEmojiSelect: (emoji) => {
-    const { selectionStart: start, selectionEnd: end } = messageInput;
-    messageInput.setRangeText(emoji.native, start, end, 'end');
+    const { selectionStart, selectionEnd } = messageInput;
+    messageInput.setRangeText(
+      emoji.native,
+      selectionStart,
+      selectionEnd,
+      'end'
+    );
     messageInput.focus();
   },
   onClickOutside: (e) => {
@@ -147,7 +159,8 @@ const picker = new EmojiMart.Picker({
 });
 
 document.querySelector('.chatbot-footer').appendChild(picker);
-sendMessageButton.addEventListener('click', (e) => handleOutgoingMessage(e));
+
+sendMessageButton.addEventListener('click', handleOutgoingMessage);
 chatbotToggler.addEventListener('click', () =>
   document.body.classList.toggle('show-chatbot')
 );
